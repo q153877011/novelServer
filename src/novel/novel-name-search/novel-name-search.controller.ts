@@ -12,6 +12,8 @@ import {
 import { NovelNameSearchService } from './novel-name-search.service';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { UserController } from 'src/logical/user/user.controller';
+import { post } from 'jquery';
 
 @Controller('novel')
 export class NovelNameSearchController {
@@ -41,18 +43,24 @@ export class NovelNameSearchController {
   }
 
   @Get('getTextContent')
-  async getContent(@Query() query: any) {
+  @UseGuards(AuthGuard('jwt'))
+  async getContent(@Query() query: any, @Request() req) {
     console.log('\n正在获取 ' + query.chapterName + ' 的内容');
-    console.log(query);
-    return this.novelNameService.getContent(query);
+    return this.novelNameService.getContent(query, req.user.username);
   }
 
   @Post('addNovel')
   @UseGuards(AuthGuard('jwt'))
   async addNovel(@Body() body, @Req() req) {
     console.log('\n小说添加中');
-    console.log(body);
     return this.novelNameService.addNovel(body, req.user.username);
+  }
+
+  @Post('deleteNovel')
+  @UseGuards(AuthGuard('jwt'))
+  async deleteNovel(@Body() body, @Req() req) {
+    console.log(body.novelName + ' 删除中');
+    return this.novelNameService.deleteNovel(body, req.user.username);
   }
 
   @Get('getBookShelf')

@@ -33,7 +33,6 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @Post('register')
   async register(@Body() body: any, @Req() req) {
-    console.log(req.body);
     return await this.userService.register(body);
   }
 }

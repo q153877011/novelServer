@@ -1,10 +1,13 @@
-import { Body, Injectable } from '@nestjs/common';
-import { insert, query } from '../../utils/database';
-import { TimeoutError } from 'rxjs';
+import { Body, Injectable, Query } from '@nestjs/common';
+import {
+  insertBelong,
+  insertTotalNovel,
+  query,
+  update,
+} from '../../utils/database';
 import { Imessage } from 'src/assets/interface/iterface';
-import sequelize from 'src/database/sequelize';
 import { searchNovel, getChapters, getContent } from 'src/utils/getMessage';
-import { first } from 'cheerio/lib/api/traversing';
+import { belongTable } from 'src/database/table';
 var Cheerio = require('cheerio');
 @Injectable()
 export class NovelNameSearchService {
@@ -97,13 +100,15 @@ export class NovelNameSearchService {
     };
   }
 
-  async getContent(@Body() body: any): Promise<any> {
-    const { novelName, chapterName, chapterUrl } = body;
+  async getContent(@Query() query: any, username: string): Promise<any> {
+    const { chapterUrl, novelName, chapterName } = query;
     let page = await getContent(chapterUrl);
 
     let $ = Cheerio.load(page);
     let result = $('.page-content');
     let content = result.text();
+
+    update(query, username);
 
     return {
       code: 200,
@@ -116,16 +121,8 @@ export class NovelNameSearchService {
   }
 
   async addNovel(@Body() body: any, username: string): Promise<any> {
-    console.log(username + ' ' + body.novelName);
-    const querySql = `
-      SELECT
-        *
-      FROM 
-        belong
-      WHERE
-        username = '${username}' and novelName = '${body.novelName}'
-    `;
-    const content = await query(querySql);
+    let select = { username: username, novelName: body.novelName };
+    const content = await query(select);
     if (content.length != 0) {
       return {
         code: 402,
@@ -146,50 +143,72 @@ export class NovelNameSearchService {
     try {
       chapters = await this.getChapters(body.novelName, body.chaptersUrl);
       firstChapter = chapters.data.chapters[0];
-      console.log('++++++++++++++++++++');
-      console.log(firstChapter);
     } catch (error) {
       return {
         code: 403,
         msg: '章节获取错误',
       };
     }
-    const insertBelongSql = `
-      INSERT INTO belong
-        (username, novelName, readingChapterName, readingChapterUrl, chaptersUrl, auth, latestChapterName, updateTime) 
-      VALUES 
-        ('${username}', '${body.novelName}', '${firstChapter.chapterName}', '${firstChapter.chapterUrl}', 
-        '${body.chaptersUrl}', '${body.auth}', '${body.latestChapterName}', '${body.updateTime}')
-    `;
 
-    const result = await insert(insertBelongSql);
+    const insertBelongValue = {
+      username: username,
+      novelName: body.novelName,
+      readingChapterName: firstChapter.chapterName,
+      readingChapterUrl: firstChapter.chapterUrl,
+      chaptersUrl: body.chaptersUrl,
+      auth: body.auth,
+      latestChapterName: body.latestChapterName,
+      updateTime: body.updateTime,
+    };
+    const result = await insertBelong(insertBelongValue);
 
-    const insertTotalNovelSql = `
-      INSERT INTO totalnovel
-        (novelName, chaptersUrl, updateTime, auth, status, type, novelUrl, latestChapterName, clickNumber)
-      VALUES
-        ('${body.novelName}','${body.chaptersUrl}','${body.updateTime}', '${body.auth}','${body.status}', 
-        '${body.type}','${body.novelUrl}','${body.latestChapterName}', '${body.clickNumber}')
-    `;
-    console.log('5555555555555555555555555555');
+    const insertTotalNovelValue = {
+      novelName: body.novelName,
+      chaptersUrl: body.chaptersUrl,
+      updateTime: body.updateTime,
+      auth: body.auth,
+      status: body.status,
+      type: body.type,
+      novelUrl: body.novelUrl,
+      latestChapterName: body.latestChapterName,
+      clickNumber: body.clickNumber,
+    };
 
-    await insert(insertTotalNovelSql);
+    await insertTotalNovel(insertTotalNovelValue);
 
     return result;
   }
 
-  async getBookShelf(username: string): Promise<any> {
-    const queryBelongSql = `
-      SELECT
-        *
-      FROM
-        belong
-      WHERE
-        username = '${username}'
-    `;
-
+  async deleteNovel(@Body() body: any, username: string): Promise<any> {
     try {
-      const result = await query(queryBelongSql);
+      let belong = belongTable();
+      let result = await belong.destroy({
+        where: { username: username, novelName: body.novelName },
+      });
+
+      if (result) {
+        return {
+          code: 200,
+          msg: 'success',
+        };
+      } else {
+        return {
+          code: 501,
+          msg: 'fail',
+        };
+      }
+    } catch (error) {
+      return {
+        code: 502,
+        msg: 'fail' + error,
+      };
+    }
+  }
+
+  async getBookShelf(username: string): Promise<any> {
+    try {
+      const select = { username: username };
+      const result = await query(select);
       return {
         code: 200,
         result,
