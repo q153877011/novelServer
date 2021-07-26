@@ -15,13 +15,16 @@ export class AuthService {
   async validateUser(username: string, password: string): Promise<any> {
     console.log('JWT验证 - Step 2: 校验用户信息');
     const user = await this.usersService.findOne(username);
+
     if (user) {
-      const hashedPassword = user.password;
+      const hashedPassword = user.passwd;
       const salt = user.salt;
       // 通过密码盐，加密传参，再与数据库里的比较，判断是否相等
-      const hashPassword = encryptPassword(password, salt);
+      const hashPassword = password;
+
       if (hashedPassword === hashPassword) {
         // 密码正确
+
         return {
           code: 1,
           user,
@@ -44,7 +47,7 @@ export class AuthService {
   // JWT验证 - Step 3: 处理 jwt 签证
   async certificate(user: any) {
     const payload = {
-      username: user.accountName,
+      username: user.account_name,
       sub: user.userId,
       realName: user.realName,
       role: user.role,

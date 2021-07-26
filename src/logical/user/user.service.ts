@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import * as Sequelize from 'sequelize';
 import sequelize from 'src/database/sequelize';
 import { makeSalt, encryptPassword } from 'src/utils/cryptopram';
+import { userInsert } from 'src/utils/database';
 
 @Injectable()
 export class UserService {
   async findOne(username: string): Promise<any | undefined> {
     const sql = `
             SELECT
-                user_id userID, account_name accountName, real_name realName, passwd password,
-                passwd_salt salt, mobile, role
+               *
             FROM
                 admin_user
             WHERE
@@ -33,8 +33,8 @@ export class UserService {
   }
 
   async register(requestBody: any): Promise<any> {
-    const { accountName, realName, password, repassword, mobile, email } =
-      requestBody;
+    const { accountName, password, repassword, email } = requestBody;
+    console.log(requestBody);
     if (password != repassword) {
       return {
         code: 400,
@@ -55,13 +55,26 @@ export class UserService {
 
     const registerSQL = `
             INSERT INTO admin_user 
-                (account_name, real_name, passwd, passwd_salt, mobile, email, user_status, role, create_by) 
+                (account_name, passwd, passwd_salt, email, user_status, role, create_by) 
             VALUES 
-                ('${accountName}', '${realName}', '${password}', '${salt}', '${mobile}', ${email}, 1, 3, 0)
+                ('${accountName}', '${password}', '${salt}', ${email}, 1, 3, 0)
         `;
+    const value = {
+      account_name: accountName,
+      real_name: '',
+      passwd: password,
+      passwd_salt: salt,
+      mobile: '',
+      user_status: 1,
+      create_time: String(new Date().toJSON()),
+      update_time: String(new Date().toJSON()),
+      update_by: 0,
+      role: 3,
+      create_by: 0,
+    };
 
     try {
-      await sequelize.query(registerSQL, { logging: false });
+      await userInsert(value);
       return {
         code: 200,
         msg: 'Success',

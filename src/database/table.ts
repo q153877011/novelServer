@@ -75,3 +75,81 @@ export function totalNovelTable() {
 
   return totalnovel;
 }
+
+export function timeCountTable() {
+  let timeCount = sequelize.define('timecount', {
+    id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+    },
+    username: {
+      type: Sequelize.STRING,
+    },
+    dailyTime: {
+      type: Sequelize.DATE,
+    },
+    weekTime: {
+      type: Sequelize.DATE,
+    },
+    monthTime: {
+      type: Sequelize.DATE,
+    },
+    yearTime: {
+      type: Sequelize.DATE,
+    },
+    totalTime: {
+      type: Sequelize.DATE,
+    },
+    latestTime: {
+      type: Sequelize.DATE,
+    },
+  });
+
+  timeCount.sync({ force: false });
+  return timeCount;
+}
+
+export function userTable() {
+  let user = sequelize.define('admin_user', {
+    user_id: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+    },
+    account_name: {
+      type: Sequelize.STRING,
+    },
+    real_name: {
+      type: Sequelize.STRING,
+    },
+    passwd: {
+      type: Sequelize.STRING,
+    },
+    passwd_salt: {
+      type: Sequelize.STRING,
+    },
+    mobile: {
+      type: Sequelize.STRING,
+    },
+    role: {
+      type: Sequelize.INTEGER,
+    },
+    user_status: {
+      type: Sequelize.INTEGER,
+    },
+    create_by: {
+      type: Sequelize.INTEGER,
+    },
+    create_time: {
+      type: Sequelize.STRING,
+    },
+    update_by: {
+      type: Sequelize.INTEGER,
+    },
+    update_time: {
+      type: Sequelize.STRING,
+    },
+  });
+
+  user.sync({ force: false });
+  return user;
+}

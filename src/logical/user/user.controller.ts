@@ -30,9 +30,9 @@ export class UserController {
     return this.userService.findOne(body.username);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @Post('register')
-  async register(@Body() body: any, @Req() req) {
+  async register(@Body() body: any) {
     return await this.userService.register(body);
   }
 }

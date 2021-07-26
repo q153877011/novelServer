@@ -3,6 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { jwtConstants } from './constants';
+import { countTime } from 'src/utils/countTime';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,6 +23,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // }
   async validate(payload: any) {
     console.log(`JWT验证 - Step 5: 测试回调函数`);
+    console.log(payload);
+
+    countTime(payload.username);
     return {
       userId: payload.sub,
       username: payload.username,

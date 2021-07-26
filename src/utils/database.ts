@@ -2,7 +2,7 @@ import sequelize from 'src/database/sequelize';
 import * as Sequelize from 'sequelize';
 import { extend } from 'jquery';
 import { Query } from '@nestjs/common';
-import { belongTable, totalNovelTable } from 'src/database/table';
+import { belongTable, totalNovelTable, userTable } from 'src/database/table';
 
 export async function query(select: object): Promise<any> {
   try {
@@ -73,13 +73,18 @@ export async function update(query: any, username: string): Promise<any> {
     });
 }
 
-export async function createNovel(name: string): Promise<any> {
-  const sql = `
-        CREATE TABLE ${name}
-        (
-            id int identity(1,1) primary key,
-            chapterName varchar(255),
-            content varchar(16000), 
-        )
-    `;
+export async function userInsert(data: object): Promise<any> {
+  try {
+    let user = await userTable();
+    await user.create(data);
+    return {
+      code: 200,
+      msg: 'success',
+    };
+  } catch (error) {
+    return {
+      code: 401,
+      msg: '注册失败' + error,
+    };
+  }
 }
