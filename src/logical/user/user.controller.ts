@@ -5,11 +5,13 @@ import {
   Req,
   Request,
   UseGuards,
+  UsePipes,
 } from '@nestjs/common';
 import { AuthService } from '../auth/auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UserService } from './user.service';
-import { request } from 'express';
+import { ValidationPipe } from 'src/pipe/validation.pipe';
+import { LoginInfoDTO, RegisterInfoDTO } from './user.dto';
 
 @Controller('user')
 export class UserController {
@@ -20,7 +22,8 @@ export class UserController {
 
   @Post('login')
   @UseGuards(AuthGuard('local'))
-  async login(@Request() request): Promise<any> {
+  @UsePipes(new ValidationPipe())
+  async login(@Request() request: LoginInfoDTO): Promise<any> {
     console.log('JWT验证 - step 1: 用户请求登录');
     return request.user;
   }
@@ -32,7 +35,9 @@ export class UserController {
 
   // @UseGuards(AuthGuard('jwt'))
   @Post('register')
-  async register(@Body() body: any) {
+  @UsePipes(new ValidationPipe())
+  async register(@Body() body: RegisterInfoDTO) {
+    console.log(body);
     return await this.userService.register(body);
   }
 }

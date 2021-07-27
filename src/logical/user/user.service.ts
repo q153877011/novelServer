@@ -52,13 +52,6 @@ export class UserService {
 
     const salt = makeSalt();
     const hashPwd = encryptPassword(password, salt);
-
-    const registerSQL = `
-            INSERT INTO admin_user 
-                (account_name, passwd, passwd_salt, email, user_status, role, create_by) 
-            VALUES 
-                ('${accountName}', '${password}', '${salt}', ${email}, 1, 3, 0)
-        `;
     const value = {
       account_name: accountName,
       real_name: '',

@@ -8,12 +8,21 @@ import {
   Query,
   Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { NovelNameSearchService } from './novel-name-search.service';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { UserController } from 'src/logical/user/user.controller';
 import { post } from 'jquery';
+import {
+  AddNovelInfoDTO,
+  DeleteNovelInfoDTO,
+  GetChaptersInfoDTO,
+  GetTextContentInfoDTO,
+  NovelSearchInfoDTO,
+} from './nove.dto';
 
 @Controller('novel')
 export class NovelNameSearchController {
@@ -28,13 +37,15 @@ export class NovelNameSearchController {
     status: 200,
     description: '搜索成功',
   })
-  async novelSearch(@Query() query: any) {
+  @UsePipes(new ValidationPipe())
+  async novelSearch(@Query() query: NovelSearchInfoDTO) {
     console.log('小说搜索中');
     return await this.novelNameService.searchNovel(query.novelName);
   }
 
   @Get('getChapters')
-  async getChapters(@Query() query: any) {
+  @UsePipes(new ValidationPipe())
+  async getChapters(@Query() query: GetChaptersInfoDTO) {
     console.log(query.novelName + ' 章节搜索中');
     return await this.novelNameService.getChapters(
       query.novelName,
@@ -43,22 +54,25 @@ export class NovelNameSearchController {
   }
 
   @Get('getTextContent')
+  @UsePipes(new ValidationPipe())
   @UseGuards(AuthGuard('jwt'))
-  async getContent(@Query() query: any, @Request() req) {
+  async getContent(@Query() query: GetTextContentInfoDTO, @Request() req) {
     console.log('\n正在获取 ' + query.chapterName + ' 的内容');
     return this.novelNameService.getContent(query, req.user.username);
   }
 
   @Post('addNovel')
   @UseGuards(AuthGuard('jwt'))
-  async addNovel(@Body() body, @Req() req) {
+  @UsePipes(new ValidationPipe())
+  async addNovel(@Body() body: AddNovelInfoDTO, @Req() req) {
     console.log('\n小说添加中');
     return this.novelNameService.addNovel(body, req.user.username);
   }
 
   @Post('deleteNovel')
   @UseGuards(AuthGuard('jwt'))
-  async deleteNovel(@Body() body, @Req() req) {
+  @UsePipes(new ValidationPipe())
+  async deleteNovel(@Body() body: DeleteNovelInfoDTO, @Req() req) {
     console.log(body.novelName + ' 删除中');
     return this.novelNameService.deleteNovel(body, req.user.username);
   }
